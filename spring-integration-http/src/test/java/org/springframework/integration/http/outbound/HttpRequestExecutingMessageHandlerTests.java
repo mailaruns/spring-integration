@@ -17,9 +17,11 @@
 package org.springframework.integration.http.outbound;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -65,11 +67,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -83,6 +87,7 @@ import static org.mockito.Mockito.when;
  * @author Gunnar Hillert
  * @author Florian Schöffl
  * @author Glenn Renfro
+ * @author Arun Sethumadhavan
  */
 public class HttpRequestExecutingMessageHandlerTests implements TestApplicationContextAware {
 
@@ -660,6 +665,57 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 				.withStackTraceContaining("intentional");
 
 		assertThat(template.lastRequestEntity.get().getHeaders().getContentType()).isNull();
+	}
+
+	@Test
+	public void exchangeWithRestClient() throws IOException {
+		ClientHttpRequestFactory requestFactory = mock(ClientHttpRequestFactory.class);
+		ClientHttpRequest clientRequest = mock(ClientHttpRequest.class);
+		when(clientRequest.getHeaders()).thenReturn(new HttpHeaders());
+		when(clientRequest.getBody()).thenReturn(new ByteArrayOutputStream());
+
+		ClientHttpResponse response = mock(ClientHttpResponse.class);
+		when(response.getStatusCode()).thenReturn(HttpStatus.OK);
+		when(response.getStatusText()).thenReturn("OK");
+		when(response.getBody()).thenReturn(new ByteArrayInputStream("testReply".getBytes(StandardCharsets.UTF_8)));
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.setContentType(MediaType.TEXT_PLAIN);
+		when(response.getHeaders()).thenReturn(responseHeaders);
+
+		when(clientRequest.execute()).thenReturn(response);
+		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class))).thenReturn(clientRequest);
+
+		RestClient restClient = RestClient.builder()
+				.requestFactory(requestFactory)
+				.build();
+
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration", restClient);
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExpectedResponseType(String.class);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
+
+		QueueChannel outputChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+		handler.handleMessage(new GenericMessage<>("request"));
+
+		Message<?> receive = outputChannel.receive(10_000);
+		assertThat(receive).isNotNull();
+		assertThat(receive.getPayload()).isEqualTo("testReply");
+		assertThat(receive.getHeaders())
+				.containsEntry(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.OK);
+	}
+
+	@Test
+	public void failWhenSetRequestFactoryWithExternalRestClient() {
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration",
+						RestClient.create());
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> handler.setRequestFactory(mock(ClientHttpRequestFactory.class)))
+				.withMessageContaining("externally configured RestClient");
 	}
 
 	@Test

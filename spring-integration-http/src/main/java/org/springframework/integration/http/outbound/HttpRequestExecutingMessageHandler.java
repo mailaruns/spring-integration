@@ -34,6 +34,7 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -42,7 +43,8 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 /**
  * A {@link org.springframework.messaging.MessageHandler}
  * implementation that executes HTTP requests by delegating
- * to a {@link RestTemplate} instance. If the 'expectReply' flag is set to true (the default)
+ * to a {@link RestTemplate} or {@link RestClient} instance.
+ * If the 'expectReply' flag is set to true (the default)
  * then a reply Message will be generated from the HTTP response. If that response contains
  * a body, it will be used as the reply Message's payload. Otherwise the reply Message's
  * payload will contain the response status as an instance of the
@@ -60,14 +62,21 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ * @author Arun Sethumadhavan
  *
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
+	@Nullable
 	private final RestTemplate restTemplate;
 
+	@Nullable
+	private final RestClient restClient;
+
 	private final boolean restTemplateExplicitlySet;
+
+	private final boolean restClientExplicitlySet;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -82,7 +91,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
-		this(uri, null);
+		this(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -90,7 +99,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uriExpression The URI expression.
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
-		this(uriExpression, null);
+		this(uriExpression, (RestTemplate) null);
 	}
 
 	/**
@@ -108,7 +117,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		Assert.hasText(uri, "URI is required");
 	}
 
-	/**4
+	/**
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate.
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
 	 * {@link org.springframework.beans.factory.BeanFactory}.
@@ -129,6 +138,40 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		}
 
 		this.restTemplate = restTemplateToSet;
+		this.restClient = null;
+		this.restClientExplicitlySet = false;
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided RestClient.
+	 * @param uri The URI.
+	 * @param restClient The rest client.
+	 * @since 7.0
+	 */
+	public HttpRequestExecutingMessageHandler(String uri, RestClient restClient) {
+		this(new LiteralExpression(uri), restClient);
+		/*
+		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
+		 *  it's safe because the literal expression simply wraps the String variable, even
+		 *  when null.
+		 */
+		Assert.hasText(uri, "URI is required");
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided RestClient.
+	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
+	 * {@link org.springframework.beans.factory.BeanFactory}.
+	 * @param restClient The rest client.
+	 * @since 7.0
+	 */
+	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestClient restClient) {
+		super(uriExpression);
+		Assert.notNull(restClient, "'restClient' must not be null");
+		this.restTemplate = null;
+		this.restClient = restClient;
+		this.restTemplateExplicitlySet = false;
+		this.restClientExplicitlySet = true;
 	}
 
 	@Override
@@ -136,10 +179,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		return (isExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
 	}
 
-	private void assertLocalRestTemplate(String option) {
-		Assert.isTrue(!this.restTemplateExplicitlySet,
-				() -> "The option '" + option + "' must be provided on the externally configured RestTemplate: "
-						+ this.restTemplate);
+	private void assertLocalClient(String option) {
+		Assert.isTrue(!this.restTemplateExplicitlySet && !this.restClientExplicitlySet, () -> {
+			if (this.restTemplateExplicitlySet) {
+				return "The option '" + option + "' must be provided on the externally configured RestTemplate: "
+						+ this.restTemplate;
+			}
+			return "The option '" + option + "' must be provided on the externally configured RestClient: "
+					+ this.restClient;
+		});
 	}
 
 	/**
@@ -148,8 +196,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
-		assertLocalRestTemplate("errorHandler");
-		this.restTemplate.setErrorHandler(errorHandler);
+		assertLocalClient("errorHandler");
+		RestTemplate restTemplate = this.restTemplate;
+		Assert.state(restTemplate != null, "'restTemplate' must not be null");
+		restTemplate.setErrorHandler(errorHandler);
 	}
 
 	/**
@@ -159,8 +209,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
-		assertLocalRestTemplate("messageConverters");
-		this.restTemplate.setMessageConverters(messageConverters);
+		assertLocalClient("messageConverters");
+		RestTemplate restTemplate = this.restTemplate;
+		Assert.state(restTemplate != null, "'restTemplate' must not be null");
+		restTemplate.setMessageConverters(messageConverters);
 	}
 
 	/**
@@ -169,13 +221,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
-		assertLocalRestTemplate("requestFactory");
-		this.restTemplate.setRequestFactory(requestFactory);
+		assertLocalClient("requestFactory");
+		RestTemplate restTemplate = this.restTemplate;
+		Assert.state(restTemplate != null, "'restTemplate' must not be null");
+		restTemplate.setRequestFactory(requestFactory);
 	}
 
 	@Override
 	public void setEncodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
-		assertLocalRestTemplate("encodingMode on UriTemplateHandler");
+		assertLocalClient("encodingMode on UriTemplateHandler");
 		super.setEncodingMode(encodingMode);
 	}
 
@@ -186,25 +240,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 		ResponseEntity<?> httpResponse;
 		try {
-			if (uri instanceof URI) {
-				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-					httpResponse = this.restTemplate.exchange((URI) uri, httpMethod, httpRequest,
-							(ParameterizedTypeReference<?>) expectedResponseType);
-				}
-				else {
-					httpResponse = this.restTemplate.exchange((URI) uri, httpMethod, httpRequest,
-							(Class<?>) expectedResponseType);
-				}
+			if (this.restClient != null) {
+				httpResponse = exchangeWithRestClient(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
 			}
 			else {
-				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-					httpResponse = this.restTemplate.exchange((String) uri, httpMethod, httpRequest,
-							(ParameterizedTypeReference<?>) expectedResponseType, uriVariables);
-				}
-				else {
-					httpResponse = this.restTemplate.exchange((String) uri, httpMethod, httpRequest,
-							(Class<?>) expectedResponseType, uriVariables);
-				}
+				httpResponse = exchangeWithRestTemplate(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
 			}
 
 			if (isExpectReply()) {
@@ -218,6 +258,56 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		catch (RestClientException e) {
 			throw new MessageHandlingException(requestMessage,
 					"HTTP request execution failed for URI [" + uri + "] in the [" + this + ']', e);
+		}
+	}
+
+	private ResponseEntity<?> exchangeWithRestTemplate(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Map<String, ?> uriVariables) {
+
+		RestTemplate restTemplate = this.restTemplate;
+		Assert.state(restTemplate != null, "'restTemplate' must not be null");
+
+		if (uri instanceof URI) {
+			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+				return restTemplate.exchange((URI) uri, httpMethod, httpRequest,
+						(ParameterizedTypeReference<?>) expectedResponseType);
+			}
+			else {
+				return restTemplate.exchange((URI) uri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
+			}
+		}
+		else {
+			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+				return restTemplate.exchange((String) uri, httpMethod, httpRequest,
+						(ParameterizedTypeReference<?>) expectedResponseType, uriVariables);
+			}
+			else {
+				return restTemplate.exchange((String) uri, httpMethod, httpRequest, (Class<?>) expectedResponseType,
+						uriVariables);
+			}
+		}
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private ResponseEntity<?> exchangeWithRestClient(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Map<String, ?> uriVariables) {
+
+		RestClient restClient = this.restClient;
+		Assert.state(restClient != null, "'restClient' must not be null");
+		RestClient.RequestBodyUriSpec uriSpec = restClient.method(httpMethod);
+		RestClient.RequestBodySpec requestSpec =
+				(uri instanceof URI uriObject ? uriSpec.uri(uriObject) : uriSpec.uri((String) uri, uriVariables));
+		requestSpec.headers((headers) -> headers.putAll(httpRequest.getHeaders()));
+		if (httpRequest.getBody() != null) {
+			requestSpec.body(httpRequest.getBody());
+		}
+
+		RestClient.ResponseSpec responseSpec = requestSpec.retrieve();
+		if (expectedResponseType instanceof ParameterizedTypeReference typeReference) {
+			return responseSpec.toEntity(typeReference);
+		}
+		else {
+			return responseSpec.toEntity((Class<?>) expectedResponseType);
 		}
 	}
 

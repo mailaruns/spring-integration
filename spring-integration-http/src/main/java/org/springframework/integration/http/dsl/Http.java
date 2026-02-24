@@ -28,6 +28,7 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingControlle
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -35,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Arun Sethumadhavan
  *
  * @since 5.0
  */
@@ -46,7 +48,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri) {
-		return outboundChannelAdapter(uri, null);
+		return outboundChannelAdapter(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -55,7 +57,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri) {
-		return outboundChannelAdapter(uri, null);
+		return outboundChannelAdapter(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -76,7 +78,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression) {
-		return outboundChannelAdapter(uriExpression, null);
+		return outboundChannelAdapter(uriExpression, (RestTemplate) null);
 	}
 
 	/**
@@ -92,6 +94,18 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@link URI} and {@link RestClient}.
+	 * @param uri the {@link URI} to send requests.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uri, restClient).expectReply(false);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
 	 * based on provided {@code uri} and {@link RestTemplate}.
 	 * @param uri the {@code uri} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
@@ -99,6 +113,18 @@ public final class Http {
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@code uri} and {@link RestClient}.
+	 * @param uri the {@code uri} to send requests.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uri, restClient).expectReply(false);
 	}
 
 	/**
@@ -118,6 +144,22 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@code Function} to evaluate target {@code uri} against request message
+	 * and {@link RestClient} for HTTP exchanges.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param restClient {@link RestClient} to use.
+	 * @param <P> the expected payload type.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
+			RestClient restClient) {
+
+		return outboundChannelAdapter(new FunctionExpression<>(uriFunction), restClient);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
 	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
 	 * against request message and {@link RestTemplate} for HTTP exchanges.
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
@@ -131,12 +173,25 @@ public final class Http {
 	}
 
 	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
+	 * against request message and {@link RestClient} for HTTP exchanges.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uriExpression, restClient).expectReply(false);
+	}
+
+	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway based on provided {@link URI}.
 	 * @param uri the {@link URI} to send requests.
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(URI uri) {
-		return outboundGateway(uri, null);
+		return outboundGateway(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -145,7 +200,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(String uri) {
-		return outboundGateway(uri, null);
+		return outboundGateway(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -166,7 +221,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression) {
-		return outboundGateway(uriExpression, null);
+		return outboundGateway(uriExpression, (RestTemplate) null);
 	}
 
 	/**
@@ -182,6 +237,18 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@link URI} and {@link RestClient}.
+	 * @param uri the {@link URI} to send requests.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundGateway(URI uri, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uri, restClient);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
 	 * based on provided {@code uri} and {@link RestTemplate}.
 	 * @param uri the {@code uri} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
@@ -189,6 +256,18 @@ public final class Http {
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@code uri} and {@link RestClient}.
+	 * @param uri the {@code uri} to send requests.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundGateway(String uri, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uri, restClient);
 	}
 
 	/**
@@ -208,6 +287,22 @@ public final class Http {
 
 	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@code Function} to evaluate target {@code uri} against request message
+	 * and {@link RestClient} for HTTP exchanges.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param restClient {@link RestClient} to use.
+	 * @param <P> the expected payload type.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
+			RestClient restClient) {
+
+		return outboundGateway(new FunctionExpression<>(uriFunction), restClient);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
 	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
 	 * against request message and {@link RestTemplate} for HTTP exchanges.
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
@@ -218,6 +313,19 @@ public final class Http {
 			@Nullable RestTemplate restTemplate) {
 
 		return new HttpMessageHandlerSpec(uriExpression, restTemplate);
+	}
+
+	/**
+	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
+	 * against request message and {@link RestClient} for HTTP exchanges.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @param restClient {@link RestClient} to use.
+	 * @return the HttpMessageHandlerSpec instance
+	 * @since 7.0
+	 */
+	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, RestClient restClient) {
+		return new HttpMessageHandlerSpec(uriExpression, restClient);
 	}
 
 	/**

@@ -72,3 +72,5 @@ public IntegrationFlow outbound() {
 }
 ----
 
+To use a preconfigured `RestClient`, use the overloaded DSL factory methods, for example:
+`Http.outboundGateway("http://localhost:8080/foo", restClient)`.

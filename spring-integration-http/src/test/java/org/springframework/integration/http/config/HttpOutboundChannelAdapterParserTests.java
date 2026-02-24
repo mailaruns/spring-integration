@@ -46,6 +46,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
@@ -60,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Biju Kunjummen
  * @author Shiliang Li
  * @author Glenn Renfro
+ * @author Arun Sethumadhavan
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -80,6 +82,14 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Autowired
 	@Qualifier("customRestTemplate")
 	private RestTemplate customRestTemplate;
+
+	@Autowired
+	@Qualifier("restClientConfig")
+	private AbstractEndpoint restClientConfig;
+
+	@Autowired
+	@Qualifier("customRestClient")
+	private RestClient customRestClient;
 
 	@Autowired
 	@Qualifier("withUrlAndTemplate")
@@ -189,11 +199,26 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void restClientConfig() {
+		RestClient restClient = TestUtils.getPropertyValue(this.restClientConfig, "handler.restClient");
+		assertThat(restClient).isEqualTo(this.customRestClient);
+	}
+
+	@Test
 	public void failWithRestTemplateAndRestAttributes() {
 		assertThatExceptionOfType(BeanDefinitionParsingException.class)
 				.isThrownBy(() ->
 						new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml",
 								getClass()));
+	}
+
+	@Test
+	public void failWithRestTemplateAndRestClientAttributes() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext(
+								"HttpOutboundChannelAdapterParserTests-both-clients-fail-context.xml", getClass()))
+				.withMessageContaining("Only one of 'rest-template' and 'rest-client' references is allowed.");
 	}
 
 	@Test

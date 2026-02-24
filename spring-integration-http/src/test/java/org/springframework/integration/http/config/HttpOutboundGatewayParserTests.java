@@ -45,6 +45,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResponseErrorHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.mock;
  * @author Artem Bilan
  * @author Biju Kunjummen
  * @author Glenn Renfro
+ * @author Arun Sethumadhavan
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -79,6 +81,14 @@ public class HttpOutboundGatewayParserTests {
 	@Autowired
 	@Qualifier("withAdvice")
 	private EventDrivenConsumer withAdvice;
+
+	@Autowired
+	@Qualifier("restClientConfig")
+	private EventDrivenConsumer restClientConfig;
+
+	@Autowired
+	@Qualifier("customRestClient")
+	private RestClient customRestClient;
 
 	@Autowired
 	@Qualifier("withPoller1")
@@ -161,6 +171,13 @@ public class HttpOutboundGatewayParserTests {
 	}
 
 	@Test
+	public void restClientConfig() {
+		HttpRequestExecutingMessageHandler handler =
+				(HttpRequestExecutingMessageHandler) this.restClientConfig.getHandler();
+		assertThat(TestUtils.<RestClient>getPropertyValue(handler, "restClient")).isEqualTo(this.customRestClient);
+	}
+
+	@Test
 	public void withUrlExpression() {
 		HttpRequestExecutingMessageHandler handler =
 				(HttpRequestExecutingMessageHandler) this.withUrlExpressionEndpoint.getHandler();
@@ -205,6 +222,15 @@ public class HttpOutboundGatewayParserTests {
 						new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml",
 								getClass()))
 				.withMessageContaining("'request-channel' attribute isn't allowed for a nested");
+	}
+
+	@Test
+	public void failWithRestTemplateAndRestClientAttributes() {
+		assertThatExceptionOfType(BeanDefinitionParsingException.class)
+				.isThrownBy(() ->
+						new ClassPathXmlApplicationContext("HttpOutboundGatewayParserTests-both-clients-fail-context.xml",
+								getClass()))
+				.withMessageContaining("Only one of 'rest-template' and 'rest-client' references is allowed.");
 	}
 
 	@Test

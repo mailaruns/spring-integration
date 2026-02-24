@@ -28,6 +28,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Oleksii Komlyk
+ * @author Arun Sethumadhavan
  *
  * @since 5.0
  *
@@ -47,6 +49,9 @@ public class HttpMessageHandlerSpec
 
 	@Nullable
 	private final RestTemplate restTemplate;
+
+	@Nullable
+	private final RestClient restClient;
 
 	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
 		this(new ValueExpression<>(uri), restTemplate);
@@ -59,6 +64,21 @@ public class HttpMessageHandlerSpec
 	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(new HttpRequestExecutingMessageHandler(uriExpression, restTemplate));
 		this.restTemplate = restTemplate;
+		this.restClient = null;
+	}
+
+	protected HttpMessageHandlerSpec(URI uri, RestClient restClient) {
+		this(new ValueExpression<>(uri), restClient);
+	}
+
+	protected HttpMessageHandlerSpec(String uri, RestClient restClient) {
+		this(new LiteralExpression(uri), restClient);
+	}
+
+	protected HttpMessageHandlerSpec(Expression uriExpression, RestClient restClient) {
+		super(new HttpRequestExecutingMessageHandler(uriExpression, restClient));
+		this.restTemplate = null;
+		this.restClient = restClient;
 	}
 
 	/**
@@ -67,7 +87,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
-		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided client");
 		this.target.setRequestFactory(requestFactory);
 		return this;
 	}
@@ -78,7 +98,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
-		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
 		this.target.setErrorHandler(errorHandler);
 		return _this();
 	}
@@ -90,14 +110,14 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
-		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided client");
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return _this();
 	}
 
 	@Override
 	protected boolean isClientSet() {
-		return this.restTemplate != null;
+		return this.restTemplate != null || this.restClient != null;
 	}
 
 }
