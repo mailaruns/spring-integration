@@ -48,7 +48,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri) {
-		return outboundChannelAdapter(uri, (RestTemplate) null);
+		return outboundChannelAdapter(uri, (RestClient) null);
 	}
 
 	/**
@@ -57,7 +57,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri) {
-		return outboundChannelAdapter(uri, (RestTemplate) null);
+		return outboundChannelAdapter(uri, (RestClient) null);
 	}
 
 	/**
@@ -78,7 +78,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression) {
-		return outboundChannelAdapter(uriExpression, (RestTemplate) null);
+		return outboundChannelAdapter(uriExpression, (RestClient) null);
 	}
 
 	/**
@@ -87,7 +87,9 @@ public final class Http {
 	 * @param uri the {@link URI} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
@@ -98,10 +100,12 @@ public final class Http {
 	 * @param uri the {@link URI} to send requests.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uri, restClient).expectReply(false);
+	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uri, restClient).expectReply(false)
+				: outboundChannelAdapter(uri, (RestTemplate) null));
 	}
 
 	/**
@@ -110,7 +114,9 @@ public final class Http {
 	 * @param uri the {@code uri} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
@@ -121,10 +127,12 @@ public final class Http {
 	 * @param uri the {@code uri} to send requests.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uri, restClient).expectReply(false);
+	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uri, restClient).expectReply(false)
+				: outboundChannelAdapter(uri, (RestTemplate) null));
 	}
 
 	/**
@@ -135,7 +143,9 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
 
@@ -150,10 +160,10 @@ public final class Http {
 	 * @param restClient {@link RestClient} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
 	public static <P> HttpMessageHandlerSpec outboundChannelAdapter(Function<Message<P>, ?> uriFunction,
-			RestClient restClient) {
+			@Nullable RestClient restClient) {
 
 		return outboundChannelAdapter(new FunctionExpression<>(uriFunction), restClient);
 	}
@@ -165,7 +175,9 @@ public final class Http {
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -179,10 +191,12 @@ public final class Http {
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uriExpression, restClient).expectReply(false);
+	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uriExpression, restClient).expectReply(false)
+				: outboundChannelAdapter(uriExpression, (RestTemplate) null));
 	}
 
 	/**
@@ -191,7 +205,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(URI uri) {
-		return outboundGateway(uri, (RestTemplate) null);
+		return outboundGateway(uri, (RestClient) null);
 	}
 
 	/**
@@ -200,7 +214,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(String uri) {
-		return outboundGateway(uri, (RestTemplate) null);
+		return outboundGateway(uri, (RestClient) null);
 	}
 
 	/**
@@ -221,7 +235,7 @@ public final class Http {
 	 * @return the HttpMessageHandlerSpec instance
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression) {
-		return outboundGateway(uriExpression, (RestTemplate) null);
+		return outboundGateway(uriExpression, (RestClient) null);
 	}
 
 	/**
@@ -230,7 +244,9 @@ public final class Http {
 	 * @param uri the {@link URI} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
@@ -241,10 +257,12 @@ public final class Http {
 	 * @param uri the {@link URI} to send requests.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(URI uri, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uri, restClient);
+	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uri, restClient)
+				: outboundGateway(uri, (RestTemplate) null));
 	}
 
 	/**
@@ -253,7 +271,9 @@ public final class Http {
 	 * @param uri the {@code uri} to send requests.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
@@ -264,10 +284,12 @@ public final class Http {
 	 * @param uri the {@code uri} to send requests.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(String uri, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uri, restClient);
+	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uri, restClient)
+				: outboundGateway(uri, (RestTemplate) null));
 	}
 
 	/**
@@ -278,7 +300,9 @@ public final class Http {
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
 			RestTemplate restTemplate) {
 
@@ -293,10 +317,10 @@ public final class Http {
 	 * @param restClient {@link RestClient} to use.
 	 * @param <P> the expected payload type.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
 	public static <P> HttpMessageHandlerSpec outboundGateway(Function<Message<P>, ?> uriFunction,
-			RestClient restClient) {
+			@Nullable RestClient restClient) {
 
 		return outboundGateway(new FunctionExpression<>(uriFunction), restClient);
 	}
@@ -308,7 +332,9 @@ public final class Http {
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
 	 * @param restTemplate {@link RestTemplate} to use.
 	 * @return the HttpMessageHandlerSpec instance
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -322,10 +348,12 @@ public final class Http {
 	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
 	 * @param restClient {@link RestClient} to use.
 	 * @return the HttpMessageHandlerSpec instance
-	 * @since 7.0
+	 * @since 7.1
 	 */
-	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, RestClient restClient) {
-		return new HttpMessageHandlerSpec(uriExpression, restClient);
+	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, @Nullable RestClient restClient) {
+		return (restClient != null
+				? new HttpMessageHandlerSpec(uriExpression, restClient)
+				: outboundGateway(uriExpression, (RestTemplate) null));
 	}
 
 	/**

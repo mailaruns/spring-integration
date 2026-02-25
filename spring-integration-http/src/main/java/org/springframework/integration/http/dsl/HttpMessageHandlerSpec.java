@@ -28,8 +28,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -47,24 +47,33 @@ import org.springframework.web.client.RestTemplate;
 public class HttpMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<HttpMessageHandlerSpec, HttpRequestExecutingMessageHandler> {
 
-	@Nullable
-	private final RestTemplate restTemplate;
+	private final boolean clientSet;
 
-	@Nullable
-	private final RestClient restClient;
-
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
 		this(new ValueExpression<>(uri), restTemplate);
 	}
 
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(String uri, @Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
 	}
 
+	/**
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
+	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
-		super(new HttpRequestExecutingMessageHandler(uriExpression, restTemplate));
-		this.restTemplate = restTemplate;
-		this.restClient = null;
+		super(restTemplate != null
+				? new HttpRequestExecutingMessageHandler(uriExpression, RestClient.create(restTemplate))
+				: new HttpRequestExecutingMessageHandler(uriExpression, (RestTemplate) null));
+		this.clientSet = restTemplate != null;
 	}
 
 	protected HttpMessageHandlerSpec(URI uri, RestClient restClient) {
@@ -77,15 +86,16 @@ public class HttpMessageHandlerSpec
 
 	protected HttpMessageHandlerSpec(Expression uriExpression, RestClient restClient) {
 		super(new HttpRequestExecutingMessageHandler(uriExpression, restClient));
-		this.restTemplate = null;
-		this.restClient = restClient;
+		this.clientSet = true;
 	}
 
 	/**
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @param requestFactory The request factory.
 	 * @return the spec
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
 		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided client");
 		this.target.setRequestFactory(requestFactory);
@@ -96,7 +106,9 @@ public class HttpMessageHandlerSpec
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
 	 * @return the spec
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
 		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
 		this.target.setErrorHandler(errorHandler);
@@ -108,7 +120,9 @@ public class HttpMessageHandlerSpec
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
 	 * @return the spec
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
 		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided client");
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
@@ -117,7 +131,7 @@ public class HttpMessageHandlerSpec
 
 	@Override
 	protected boolean isClientSet() {
-		return this.restTemplate != null || this.restClient != null;
+		return this.clientSet;
 	}
 
 }

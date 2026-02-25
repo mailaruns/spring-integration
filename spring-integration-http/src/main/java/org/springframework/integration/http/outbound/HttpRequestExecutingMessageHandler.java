@@ -34,8 +34,8 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -81,7 +81,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI.
 	 * @param uri The URI.
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(URI uri) {
 		this(new ValueExpression<>(uri));
 	}
@@ -89,7 +91,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI.
 	 * @param uri The URI.
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(String uri) {
 		this(uri, (RestTemplate) null);
 	}
@@ -97,7 +101,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI Expression.
 	 * @param uriExpression The URI expression.
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
 		this(uriExpression, (RestTemplate) null);
 	}
@@ -106,7 +112,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate.
 	 * @param uri The URI.
 	 * @param restTemplate The rest template.
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(String uri, @Nullable RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
 		/*
@@ -122,7 +130,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param restTemplate The rest template.
+	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(uriExpression);
 		RestTemplate restTemplateToSet;
@@ -146,7 +156,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Create a handler that will send requests to the provided URI using a provided RestClient.
 	 * @param uri The URI.
 	 * @param restClient The rest client.
-	 * @since 7.0
+	 * @since 7.1
 	 */
 	public HttpRequestExecutingMessageHandler(String uri, RestClient restClient) {
 		this(new LiteralExpression(uri), restClient);
@@ -163,7 +173,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
 	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param restClient The rest client.
-	 * @since 7.0
+	 * @since 7.1
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestClient restClient) {
 		super(uriExpression);
@@ -194,7 +204,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		assertLocalClient("errorHandler");
 		RestTemplate restTemplate = this.restTemplate;
@@ -207,7 +219,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
 	 * @see RestTemplate#setMessageConverters(java.util.List)
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		assertLocalClient("messageConverters");
 		RestTemplate restTemplate = this.restTemplate;
@@ -219,7 +233,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @param requestFactory The request factory.
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
+	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
+	@Deprecated(since = "7.1", forRemoval = true)
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
 		assertLocalClient("requestFactory");
 		RestTemplate restTemplate = this.restTemplate;
@@ -241,7 +257,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		ResponseEntity<?> httpResponse;
 		try {
 			if (this.restClient != null) {
-				httpResponse = exchangeWithRestClient(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
+				httpResponse = exchangeWithRestClient(this.restClient, uri, httpMethod, httpRequest,
+						expectedResponseType, uriVariables);
 			}
 			else {
 				httpResponse = exchangeWithRestTemplate(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
@@ -289,11 +306,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	private ResponseEntity<?> exchangeWithRestClient(Object uri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			Object expectedResponseType, Map<String, ?> uriVariables) {
-
-		RestClient restClient = this.restClient;
-		Assert.state(restClient != null, "'restClient' must not be null");
+	private ResponseEntity<?> exchangeWithRestClient(RestClient restClient, Object uri, HttpMethod httpMethod,
+			HttpEntity<?> httpRequest, Object expectedResponseType, Map<String, ?> uriVariables) {
 		RestClient.RequestBodyUriSpec uriSpec = restClient.method(httpMethod);
 		RestClient.RequestBodySpec requestSpec =
 				(uri instanceof URI uriObject ? uriSpec.uri(uriObject) : uriSpec.uri((String) uri, uriVariables));

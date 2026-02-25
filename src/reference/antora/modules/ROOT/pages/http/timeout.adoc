@@ -22,9 +22,13 @@ image::http-outbound-gateway.png[align="center"]
 //TODO These images are too small, and the text within them is much too small.
 
 You may want to configure the HTTP-related timeout behavior when making active HTTP requests by using the HTTP outbound gateway or the HTTP outbound channel adapter.
-In those instances, these two components use Spring's HTTP client support (`RestTemplate` or `RestClient`) to execute HTTP requests.
+Starting with version 7.1, these outbound HTTP components support Spring's `RestClient` for request execution.
+`RestTemplate`-based endpoint configuration is deprecated for removal in a future version.
 
-To configure timeouts for the HTTP outbound gateway and the HTTP outbound channel adapter, you can either reference a `RestTemplate` bean directly (by using the `rest-template` attribute), reference a `RestClient` bean (by using the `rest-client` attribute), or you can provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
+For timeout configuration on the HTTP outbound gateway and outbound channel adapter, prefer referencing a `RestClient` bean with the `rest-client` attribute.
+To migrate existing `RestTemplate` customization, create a `RestClient` by using `RestClient.create(restTemplate)` and reference it with `rest-client`.
+The `rest-template` attribute remains available for backward compatibility.
+You can also provide a reference to a https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[`ClientHttpRequestFactory`] bean (by using the `request-factory` attribute).
 Spring provides the following implementations of the `ClientHttpRequestFactory` interface:
 
 * https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[`SimpleClientHttpRequestFactory`]: Uses standard J2SE facilities for making HTTP Requests
