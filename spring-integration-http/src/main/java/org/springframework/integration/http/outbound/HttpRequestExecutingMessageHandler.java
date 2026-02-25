@@ -203,8 +203,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
-	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
+	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
@@ -218,8 +218,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
-	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
+	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
@@ -232,8 +232,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @param requestFactory The request factory.
-	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
+	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
