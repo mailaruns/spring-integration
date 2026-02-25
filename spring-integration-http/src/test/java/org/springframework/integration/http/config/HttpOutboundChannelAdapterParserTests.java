@@ -18,6 +18,7 @@ package org.springframework.integration.http.config;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -119,9 +120,9 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void minimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfig);
-		RestTemplate restTemplate =
-				TestUtils.<RestTemplate>getPropertyValue(this.minimalConfig, "handler.restTemplate");
-		assertThat(restTemplate).isNotSameAs(customRestTemplate);
+		RestClient restClient =
+				TestUtils.<RestClient>getPropertyValue(this.minimalConfig, "handler.restClient");
+		assertThat(restClient).isNotSameAs(this.customRestClient);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -129,11 +130,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor =
-				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
+		ClientHttpRequestFactory requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
+		assertThat(requestFactory).isNotNull();
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
@@ -155,19 +153,16 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
 		assertThat(handlerAccessor.getPropertyValue("order")).isEqualTo(77);
 		assertThat(endpointAccessor.getPropertyValue("autoStartup")).isEqualTo(Boolean.FALSE);
-		DirectFieldAccessor templateAccessor =
-				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
+		ClientHttpRequestFactory requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "expectedResponseTypeExpression").getValue())
 				.isEqualTo(Boolean.class.getName());
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
+		assertThat(requestFactory).isNotNull();
 		Object converterListBean = this.applicationContext.getBean("converterList");
-		assertThat(templateAccessor.getPropertyValue("messageConverters")).isEqualTo(converterListBean);
+		List<?> messageConverters = TestUtils.getPropertyValue(handler, "restClient.messageConverters");
+		assertThat(messageConverters).containsAll((List) converterListBean);
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertThat(requestFactory).isEqualTo(requestFactoryBean);
-		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
-		assertThat(templateAccessor.getPropertyValue("errorHandler")).isEqualTo(errorHandlerBean);
+		assertThat(TestUtils.<List<?>>getPropertyValue(handler, "restClient.defaultStatusHandlers")).hasSize(1);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test2/{foo}");
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
@@ -187,7 +182,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2")).isTrue();
 		assertThat(
 				TestUtils.<DefaultUriBuilderFactory.EncodingMode>getPropertyValue(
-						handler, "restTemplate.uriTemplateHandler.encodingMode"))
+						handler, "restClient.uriBuilderFactory.encodingMode"))
 				.isEqualTo(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 	}
 
@@ -257,8 +252,8 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void withUrlExpression() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpression);
-		RestTemplate restTemplate = TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate");
-		assertThat(restTemplate).isNotSameAs(customRestTemplate);
+		RestClient restClient = TestUtils.getPropertyValue(this.withUrlExpression, "handler.restClient");
+		assertThat(restClient).isNotSameAs(this.customRestClient);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor
 				.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -266,11 +261,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(endpointAccessor.getPropertyValue("inputChannel"))
 				.isEqualTo(this.applicationContext.getBean("requests"));
 		assertThat(handlerAccessor.getPropertyValue("outputChannel")).isNull();
-		DirectFieldAccessor templateAccessor =
-				new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
+		ClientHttpRequestFactory requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
+		assertThat(requestFactory).isNotNull();
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");

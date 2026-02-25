@@ -111,7 +111,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -149,7 +149,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -180,7 +180,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -211,7 +211,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -256,7 +256,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -304,7 +304,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -345,7 +345,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -389,7 +389,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -429,7 +429,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -471,7 +471,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -513,7 +513,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -548,7 +548,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -572,7 +572,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -596,7 +596,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				"https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.setExtractPayload(true);
 		setBeanFactory(handler);
@@ -606,7 +606,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		handler = new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.GET);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -615,7 +615,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		handler = new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.POST);
 		handler.setExtractPayload(true);
 		setBeanFactory(handler);
@@ -628,7 +628,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		HttpRequestExecutingMessageHandler handler =
 				new HttpRequestExecutingMessageHandler("https://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
-		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		setRestTemplateForTesting(handler, template);
 		handler.setHttpMethod(HttpMethod.GET);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
@@ -841,23 +841,18 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		converters.add(new SerializingHttpMessageConverter());
 		handler.setMessageConverters(converters);
+
+		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-
-		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate");
-
-		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
+		assertThat(TestUtils.<List<HttpMessageConverter<?>>>getPropertyValue(handler, "restClient.messageConverters"))
+				.anyMatch(SerializingHttpMessageConverter.class::isInstance);
 
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
 				.withStackTraceContaining("404 Not Found");
 
-		assertThat(requestHeaders.getAccept()).isNotNull();
-		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		List<MediaType> accept = requestHeaders.getAccept();
-		assertThat(accept).hasSizeGreaterThan(0);
-		assertThat(accept.get(0).getType()).isEqualTo("application");
-		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
+		assertThat(requestHeaders.getAccept()).isEmpty();
 	}
 
 	@Test
@@ -872,23 +867,18 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		converters.add(new SerializingHttpMessageConverter());
 		handler.setMessageConverters(converters);
+
+		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(handler);
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
-
-		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate");
-
-		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
+		assertThat(TestUtils.<List<HttpMessageConverter<?>>>getPropertyValue(handler, "restClient.messageConverters"))
+				.anyMatch(SerializingHttpMessageConverter.class::isInstance);
 
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
 				.withStackTraceContaining("404 Not Found");
 
-		assertThat(requestHeaders.getAccept()).isNotNull();
-		assertThat(requestHeaders.getAccept().size() > 0).isTrue();
-		List<MediaType> accept = requestHeaders.getAccept();
-		assertThat(accept).hasSizeGreaterThan(0);
-		assertThat(accept.get(0).getType()).isEqualTo("application");
-		assertThat(accept.get(0).getSubtype()).isEqualTo("x-java-serialized-object");
+		assertThat(requestHeaders.getAccept()).isEmpty();
 	}
 
 	@Test
@@ -934,7 +924,14 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 		handler.setBeanFactory(TEST_INTEGRATION_CONTEXT);
 	}
 
-	private HttpHeaders setUpMocksToCaptureSentHeaders(RestTemplate restTemplate) throws IOException {
+	private void setRestTemplateForTesting(HttpRequestExecutingMessageHandler handler, RestTemplate restTemplate) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		accessor.setPropertyValue("localRestClientBuilder", null);
+		accessor.setPropertyValue("restClient", null);
+		accessor.setPropertyValue("restTemplate", restTemplate);
+	}
+
+	private HttpHeaders setUpMocksToCaptureSentHeaders(HttpRequestExecutingMessageHandler handler) throws IOException {
 
 		HttpHeaders headers = new HttpHeaders();
 
@@ -954,7 +951,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 
 		when(clientRequest.execute()).thenReturn(response);
 
-		restTemplate.setRequestFactory(requestFactory);
+		handler.setRequestFactory(requestFactory);
 
 		return headers;
 	}

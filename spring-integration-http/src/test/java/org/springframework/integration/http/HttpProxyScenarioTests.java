@@ -58,6 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Arun Sethumadhavan
  *
  * @since 3.0
  */
@@ -135,8 +136,10 @@ public class HttpProxyScenarioTests {
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
 						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
-		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
-		dfa.setPropertyValue("restTemplate", template);
+			PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
+			dfa.setPropertyValue("localRestClientBuilder", null);
+			dfa.setPropertyValue("restClient", null);
+			dfa.setPropertyValue("restTemplate", template);
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(attributes);
@@ -196,8 +199,10 @@ public class HttpProxyScenarioTests {
 				.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class),
 						Mockito.any(HttpEntity.class), Mockito.<Class<?>>any(), Mockito.anyMap());
 
-		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
-		dfa.setPropertyValue("restTemplate", template);
+			PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
+			dfa.setPropertyValue("localRestClientBuilder", null);
+			dfa.setPropertyValue("restClient", null);
+			dfa.setPropertyValue("restTemplate", template);
 
 		RequestAttributes attributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(attributes);

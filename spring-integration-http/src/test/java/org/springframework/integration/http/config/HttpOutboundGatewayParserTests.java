@@ -17,6 +17,7 @@
 package org.springframework.integration.http.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -107,8 +107,8 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(requestChannel).isEqualTo(this.applicationContext.getBean("requests"));
 		Object replyChannel = handler.getOutputChannel();
 		assertThat(replyChannel).isNull();
-		Object requestFactory = TestUtils.getPropertyValue(handler, "restTemplate.requestFactory");
-		assertThat(requestFactory).isInstanceOf(SimpleClientHttpRequestFactory.class);
+		Object requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
+		assertThat(requestFactory).isNotNull();
 		Expression uriExpression = TestUtils.getPropertyValue(handler, "uriExpression");
 		assertThat(uriExpression.getValue()).isEqualTo("http://localhost/test1");
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "httpMethodExpression").getExpressionString())
@@ -132,11 +132,11 @@ public class HttpOutboundGatewayParserTests {
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertThat(replyChannel).isNotNull();
 		assertThat(replyChannel).isEqualTo(this.applicationContext.getBean("replies"));
-		Object requestFactory = TestUtils.getPropertyValue(handler, "restTemplate.requestFactory");
-		assertThat(requestFactory).isInstanceOf(SimpleClientHttpRequestFactory.class);
+		Object requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
+		assertThat(requestFactory).isNotNull();
 		Object converterListBean = this.applicationContext.getBean("converterList");
-		assertThat(TestUtils.<Object>getPropertyValue(handler, "restTemplate.messageConverters"))
-				.isEqualTo(converterListBean);
+		List<?> messageConverters = TestUtils.getPropertyValue(handler, "restClient.messageConverters");
+		assertThat(messageConverters).containsAll((List) converterListBean);
 
 		assertThat(TestUtils.<Expression>getPropertyValue(handler, "expectedResponseTypeExpression").getValue())
 				.isEqualTo(String.class.getName());
@@ -148,9 +148,7 @@ public class HttpOutboundGatewayParserTests {
 		assertThat(handlerAccessor.getPropertyValue("extractPayload")).isEqualTo(false);
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertThat(requestFactory).isEqualTo(requestFactoryBean);
-		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
-		assertThat(TestUtils.<Object>getPropertyValue(handler, "restTemplate.errorHandler"))
-				.isEqualTo(errorHandlerBean);
+		assertThat(TestUtils.<List<?>>getPropertyValue(handler, "restClient.defaultStatusHandlers")).hasSize(1);
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertThat(sendTimeout).isEqualTo(1234L);
@@ -186,10 +184,8 @@ public class HttpOutboundGatewayParserTests {
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertThat(replyChannel).isNull();
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
-		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("requestFactory");
-		assertThat(requestFactory instanceof SimpleClientHttpRequestFactory).isTrue();
+		ClientHttpRequestFactory requestFactory = TestUtils.getPropertyValue(handler, "restClient.clientRequestFactory");
+		assertThat(requestFactory).isNotNull();
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertThat(expression).isNotNull();
 		assertThat(expression.getExpressionString()).isEqualTo("'http://localhost/test1'");

@@ -93,9 +93,7 @@ public class HttpMessageHandlerSpec
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @param requestFactory The request factory.
 	 * @return the spec
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
 		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided client");
 		this.target.setRequestFactory(requestFactory);
@@ -106,9 +104,7 @@ public class HttpMessageHandlerSpec
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
 	 * @return the spec
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
 		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided client");
 		this.target.setErrorHandler(errorHandler);
@@ -120,9 +116,7 @@ public class HttpMessageHandlerSpec
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
 	 * @return the spec
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
 		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided client");
 		this.target.setMessageConverters(Arrays.asList(messageConverters));

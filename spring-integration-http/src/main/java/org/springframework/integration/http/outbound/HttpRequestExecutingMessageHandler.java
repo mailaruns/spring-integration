@@ -72,7 +72,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	private final RestTemplate restTemplate;
 
 	@Nullable
-	private final RestClient restClient;
+	private volatile RestClient restClient;
+
+	private final RestClient.@Nullable Builder localRestClientBuilder;
 
 	private final boolean restTemplateExplicitlySet;
 
@@ -81,9 +83,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI.
 	 * @param uri The URI.
-	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(URI uri) {
 		this(new ValueExpression<>(uri));
 	}
@@ -91,9 +91,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI.
 	 * @param uri The URI.
-	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(String uri) {
 		this(uri, (RestTemplate) null);
 	}
@@ -101,9 +100,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI Expression.
 	 * @param uriExpression The URI expression.
-	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
 		this(uriExpression, (RestTemplate) null);
 	}
@@ -135,19 +133,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(uriExpression);
-		RestTemplate restTemplateToSet;
-
 		if (restTemplate != null) {
-			restTemplateToSet = restTemplate;
+			this.restTemplate = restTemplate;
+			this.localRestClientBuilder = null;
 			this.restTemplateExplicitlySet = true;
 		}
 		else {
-			restTemplateToSet = new RestTemplate();
-			restTemplateToSet.setUriTemplateHandler(this.uriFactory);
+			this.restTemplate = null;
+			this.localRestClientBuilder = RestClient.builder()
+					.uriBuilderFactory(this.uriFactory);
 			this.restTemplateExplicitlySet = false;
 		}
-
-		this.restTemplate = restTemplateToSet;
 		this.restClient = null;
 		this.restClientExplicitlySet = false;
 	}
@@ -179,6 +175,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		super(uriExpression);
 		Assert.notNull(restClient, "'restClient' must not be null");
 		this.restTemplate = null;
+		this.localRestClientBuilder = null;
 		this.restClient = restClient;
 		this.restTemplateExplicitlySet = false;
 		this.restClientExplicitlySet = true;
@@ -200,47 +197,58 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		});
 	}
 
+	@Override
+	protected void doInit() {
+		super.doInit();
+		rebuildLocalRestClient();
+	}
+
+	private void rebuildLocalRestClient() {
+		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
+		if (localRestClientBuilder != null) {
+			this.restClient = localRestClientBuilder.build();
+		}
+	}
+
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		assertLocalClient("errorHandler");
-		RestTemplate restTemplate = this.restTemplate;
-		Assert.state(restTemplate != null, "'restTemplate' must not be null");
-		restTemplate.setErrorHandler(errorHandler);
+		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
+		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
+		localRestClientBuilder.defaultStatusHandler(errorHandler);
+		rebuildLocalRestClient();
 	}
 
 	/**
 	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
 	 * Converters configured via this method will override the default converters.
 	 * @param messageConverters The message converters.
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		assertLocalClient("messageConverters");
-		RestTemplate restTemplate = this.restTemplate;
-		Assert.state(restTemplate != null, "'restTemplate' must not be null");
-		restTemplate.setMessageConverters(messageConverters);
+		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
+		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
+		@SuppressWarnings("removal")
+		RestClient.Builder builder = localRestClientBuilder.messageConverters(messageConverters);
+		this.restClient = builder.build();
 	}
 
 	/**
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @param requestFactory The request factory.
-	 * @deprecated Since 7.1 in favor of configuring the provided {@link RestClient}.
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
-	@Deprecated(since = "7.1", forRemoval = true)
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
 		assertLocalClient("requestFactory");
-		RestTemplate restTemplate = this.restTemplate;
-		Assert.state(restTemplate != null, "'restTemplate' must not be null");
-		restTemplate.setRequestFactory(requestFactory);
+		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
+		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
+		localRestClientBuilder.requestFactory(requestFactory);
+		rebuildLocalRestClient();
 	}
 
 	@Override
@@ -305,23 +313,36 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	private ResponseEntity<?> exchangeWithRestClient(RestClient restClient, Object uri, HttpMethod httpMethod,
 			HttpEntity<?> httpRequest, Object expectedResponseType, Map<String, ?> uriVariables) {
+		Assert.notNull(restClient, "'restClient' must not be null");
+		Assert.isTrue(uri instanceof URI || uri instanceof String, "'uri' must be a URI or String");
+
 		RestClient.RequestBodyUriSpec uriSpec = restClient.method(httpMethod);
-		RestClient.RequestBodySpec requestSpec =
-				(uri instanceof URI uriObject ? uriSpec.uri(uriObject) : uriSpec.uri((String) uri, uriVariables));
+		RestClient.RequestBodySpec requestSpec = (uri instanceof URI uriObject)
+				? uriSpec.uri(uriObject)
+				: uriSpec.uri((String) uri, uriVariables);
+
 		requestSpec.headers((headers) -> headers.putAll(httpRequest.getHeaders()));
-		if (httpRequest.getBody() != null) {
-			requestSpec.body(httpRequest.getBody());
+
+		Object body = httpRequest.getBody();
+		if (body != null) {
+			requestSpec.body(body);
 		}
 
 		RestClient.ResponseSpec responseSpec = requestSpec.retrieve();
-		if (expectedResponseType instanceof ParameterizedTypeReference typeReference) {
+
+		if (expectedResponseType == Void.class || expectedResponseType == void.class) {
+			return responseSpec.toBodilessEntity();
+		}
+		else if (expectedResponseType instanceof ParameterizedTypeReference<?> typeReference) {
 			return responseSpec.toEntity(typeReference);
 		}
+		else if (expectedResponseType instanceof Class<?> clazz) {
+			return responseSpec.toEntity(clazz);
+		}
 		else {
-			return responseSpec.toEntity((Class<?>) expectedResponseType);
+			throw new IllegalArgumentException("Unsupported expectedResponseType: " + expectedResponseType);
 		}
 	}
 
