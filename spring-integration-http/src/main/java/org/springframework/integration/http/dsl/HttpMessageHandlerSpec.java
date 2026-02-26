@@ -49,6 +49,19 @@ public class HttpMessageHandlerSpec
 
 	private final boolean clientSet;
 
+	protected HttpMessageHandlerSpec(URI uri) {
+		this(new ValueExpression<>(uri));
+	}
+
+	protected HttpMessageHandlerSpec(String uri) {
+		this(new LiteralExpression(uri));
+	}
+
+	protected HttpMessageHandlerSpec(Expression uriExpression) {
+		super(new HttpRequestExecutingMessageHandler(uriExpression));
+		this.clientSet = false;
+	}
+
 	/**
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
@@ -72,7 +85,7 @@ public class HttpMessageHandlerSpec
 	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
 		super(restTemplate != null
 				? new HttpRequestExecutingMessageHandler(uriExpression, RestClient.create(restTemplate))
-				: new HttpRequestExecutingMessageHandler(uriExpression, (RestTemplate) null));
+				: new HttpRequestExecutingMessageHandler(uriExpression));
 		this.clientSet = restTemplate != null;
 	}
 

@@ -131,6 +131,7 @@ public class HttpDslTests {
 		ClientHttpRequestFactory mockRequestFactory =
 				TestUtils.getPropertyValue(restTestClient, "restClient.clientRequestFactory");
 		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
+		this.serviceInternalGatewayHandler.afterPropertiesSet();
 
 		this.mockMvc.perform(
 						get("/service")

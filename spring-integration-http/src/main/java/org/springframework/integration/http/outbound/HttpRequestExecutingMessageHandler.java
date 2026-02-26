@@ -200,10 +200,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Override
 	protected void doInit() {
 		super.doInit();
-		rebuildLocalRestClient();
-	}
-
-	private void rebuildLocalRestClient() {
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		if (localRestClientBuilder != null) {
 			this.restClient = localRestClientBuilder.build();
@@ -220,7 +216,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
 		localRestClientBuilder.defaultStatusHandler(errorHandler);
-		rebuildLocalRestClient();
 	}
 
 	/**
@@ -229,13 +224,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param messageConverters The message converters.
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
+	@SuppressWarnings("removal")
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		assertLocalClient("messageConverters");
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
-		@SuppressWarnings("removal")
-		RestClient.Builder builder = localRestClientBuilder.messageConverters(messageConverters);
-		this.restClient = builder.build();
+		localRestClientBuilder.messageConverters(messageConverters);
 	}
 
 	/**
@@ -248,7 +242,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
 		localRestClientBuilder.requestFactory(requestFactory);
-		rebuildLocalRestClient();
 	}
 
 	@Override

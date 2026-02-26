@@ -90,6 +90,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
@@ -103,9 +104,7 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(URI uri, @Nullable RestClient restClient) {
-		return (restClient != null
-				? new HttpMessageHandlerSpec(uri, restClient).expectReply(false)
-				: outboundChannelAdapter(uri, (RestTemplate) null));
+		return outboundGatewaySpec(uri, restClient).expectReply(false);
 	}
 
 	/**
@@ -117,6 +116,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate).expectReply(false);
 	}
@@ -130,9 +130,7 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(String uri, @Nullable RestClient restClient) {
-		return (restClient != null
-				? new HttpMessageHandlerSpec(uri, restClient).expectReply(false)
-				: outboundChannelAdapter(uri, (RestTemplate) null));
+		return outboundGatewaySpec(uri, restClient).expectReply(false);
 	}
 
 	/**
@@ -178,6 +176,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -194,9 +193,7 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundChannelAdapter(Expression uriExpression, @Nullable RestClient restClient) {
-		return (restClient != null
-				? new HttpMessageHandlerSpec(uriExpression, restClient).expectReply(false)
-				: outboundChannelAdapter(uriExpression, (RestTemplate) null));
+		return outboundGatewaySpec(uriExpression, restClient).expectReply(false);
 	}
 
 	/**
@@ -247,6 +244,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
@@ -260,9 +258,7 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(URI uri, @Nullable RestClient restClient) {
-		return (restClient != null
-				? new HttpMessageHandlerSpec(uri, restClient)
-				: outboundGateway(uri, (RestTemplate) null));
+		return outboundGatewaySpec(uri, restClient);
 	}
 
 	/**
@@ -274,6 +270,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uri, restTemplate);
 	}
@@ -287,9 +284,7 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(String uri, @Nullable RestClient restClient) {
-		return (restClient != null
-				? new HttpMessageHandlerSpec(uri, restClient)
-				: outboundGateway(uri, (RestTemplate) null));
+		return outboundGatewaySpec(uri, restClient);
 	}
 
 	/**
@@ -335,6 +330,7 @@ public final class Http {
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
+	@SuppressWarnings("removal")
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression,
 			@Nullable RestTemplate restTemplate) {
 
@@ -351,9 +347,23 @@ public final class Http {
 	 * @since 7.1
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, @Nullable RestClient restClient) {
-		return (restClient != null
+		return outboundGatewaySpec(uriExpression, restClient);
+	}
+
+	private static HttpMessageHandlerSpec outboundGatewaySpec(URI uri, @Nullable RestClient restClient) {
+		return restClient != null ? new HttpMessageHandlerSpec(uri, restClient) : new HttpMessageHandlerSpec(uri);
+	}
+
+	private static HttpMessageHandlerSpec outboundGatewaySpec(String uri, @Nullable RestClient restClient) {
+		return restClient != null ? new HttpMessageHandlerSpec(uri, restClient) : new HttpMessageHandlerSpec(uri);
+	}
+
+	private static HttpMessageHandlerSpec outboundGatewaySpec(Expression uriExpression,
+			@Nullable RestClient restClient) {
+
+		return restClient != null
 				? new HttpMessageHandlerSpec(uriExpression, restClient)
-				: outboundGateway(uriExpression, (RestTemplate) null));
+				: new HttpMessageHandlerSpec(uriExpression);
 	}
 
 	/**
