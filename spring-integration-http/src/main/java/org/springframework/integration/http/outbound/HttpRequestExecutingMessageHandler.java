@@ -71,8 +71,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	@Nullable
 	private final RestTemplate restTemplate;
 
-	@Nullable
-	private volatile RestClient restClient;
+	private volatile @Nullable RestClient restClient;
 
 	private final RestClient.@Nullable Builder localRestClientBuilder;
 
@@ -92,18 +91,16 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * Create a handler that will send requests to the provided URI.
 	 * @param uri The URI.
 	 */
-	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(String uri) {
-		this(uri, (RestTemplate) null);
+		this(uri, (RestClient) null);
 	}
 
 	/**
 	 * Create a handler that will send requests to the provided URI Expression.
 	 * @param uriExpression The URI expression.
 	 */
-	@SuppressWarnings("removal")
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
-		this(uriExpression, (RestTemplate) null);
+		this(uriExpression, (RestClient) null);
 	}
 
 	/**
@@ -132,20 +129,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestTemplate restTemplate) {
-		super(uriExpression);
-		if (restTemplate != null) {
-			this.restTemplate = restTemplate;
-			this.localRestClientBuilder = null;
-			this.restTemplateExplicitlySet = true;
-		}
-		else {
-			this.restTemplate = null;
-			this.localRestClientBuilder = RestClient.builder()
-					.uriBuilderFactory(this.uriFactory);
-			this.restTemplateExplicitlySet = false;
-		}
-		this.restClient = null;
-		this.restClientExplicitlySet = false;
+		this(uriExpression, restTemplate, null);
 	}
 
 	/**
@@ -154,7 +138,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param restClient The rest client.
 	 * @since 7.1
 	 */
-	public HttpRequestExecutingMessageHandler(String uri, RestClient restClient) {
+	public HttpRequestExecutingMessageHandler(String uri, @Nullable RestClient restClient) {
 		this(new LiteralExpression(uri), restClient);
 		/*
 		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
@@ -171,14 +155,38 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param restClient The rest client.
 	 * @since 7.1
 	 */
-	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestClient restClient) {
+	public HttpRequestExecutingMessageHandler(Expression uriExpression, @Nullable RestClient restClient) {
+		this(uriExpression, null, restClient);
+	}
+
+	private HttpRequestExecutingMessageHandler(Expression uriExpression,
+			@Nullable RestTemplate restTemplate, @Nullable RestClient restClient) {
+
 		super(uriExpression);
-		Assert.notNull(restClient, "'restClient' must not be null");
-		this.restTemplate = null;
-		this.localRestClientBuilder = null;
-		this.restClient = restClient;
-		this.restTemplateExplicitlySet = false;
-		this.restClientExplicitlySet = true;
+		Assert.isTrue(restTemplate == null || restClient == null,
+				"Only one of 'restTemplate' and 'restClient' may be provided");
+		if (restClient != null) {
+			this.restTemplate = null;
+			this.localRestClientBuilder = null;
+			this.restClient = restClient;
+			this.restTemplateExplicitlySet = false;
+			this.restClientExplicitlySet = true;
+		}
+		else if (restTemplate != null) {
+			this.restTemplate = restTemplate;
+			this.localRestClientBuilder = null;
+			this.restClient = null;
+			this.restTemplateExplicitlySet = true;
+			this.restClientExplicitlySet = false;
+		}
+		else {
+			this.restTemplate = null;
+			this.localRestClientBuilder = RestClient.builder()
+					.uriBuilderFactory(this.uriFactory);
+			this.restClient = null;
+			this.restTemplateExplicitlySet = false;
+			this.restClientExplicitlySet = false;
+		}
 	}
 
 	@Override
@@ -224,12 +232,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param messageConverters The message converters.
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
-	@SuppressWarnings("removal")
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		assertLocalClient("messageConverters");
 		RestClient.Builder localRestClientBuilder = this.localRestClientBuilder;
 		Assert.state(localRestClientBuilder != null, "'localRestClientBuilder' must not be null");
-		localRestClientBuilder.messageConverters(messageConverters);
+		localRestClientBuilder.configureMessageConverters((builder) ->
+				builder.configureMessageConvertersList((converters) -> {
+					converters.clear();
+					converters.addAll(messageConverters);
+				}));
 	}
 
 	/**

@@ -754,6 +754,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void testUriExpression() {
 		MockRestTemplate restTemplate = new MockRestTemplate();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
@@ -772,63 +773,62 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	@Test
 	public void testUriEncoded() {
 		SpelExpressionParser parser = new SpelExpressionParser();
-		MockRestTemplate restTemplate = new MockRestTemplate();
+		AtomicReference<URI> actualUri = new AtomicReference<>();
 
-		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
-				"https://example.com?query={query}",
-				restTemplate
-		);
-
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("https://example.com?query={query}");
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
+		handler.setRequestFactory((uri, httpMethod) -> {
+			actualUri.set(uri);
+			throw new RuntimeException("intentional");
+		});
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test-äöü&%")));
 
-		assertThat(restTemplate.actualUrl.get()).isEqualTo("https://example.com?query=test-%C3%A4%C3%B6%C3%BC%26%25");
+		assertThat(actualUri.get()).hasToString("https://example.com?query=test-%C3%A4%C3%B6%C3%BC%26%25");
 	}
 
 	@Test
 	public void testUriEncodedDisabled() {
 		SpelExpressionParser parser = new SpelExpressionParser();
-		MockRestTemplate restTemplate = new MockRestTemplate();
-		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
-		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-		restTemplate.setUriTemplateHandler(uriBuilderFactory);
+		AtomicReference<URI> actualUri = new AtomicReference<>();
 
-		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
-				"https://example.com?query={query}",
-				restTemplate
-		);
-
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("https://example.com?query={query}");
+		handler.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
 		handler.setUriVariableExpressions(Collections.singletonMap("query", parser.parseExpression("payload")));
+		handler.setRequestFactory((uri, httpMethod) -> {
+			actualUri.set(uri);
+			throw new RuntimeException("intentional");
+		});
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("test-äöü")));
 
-		assertThat(restTemplate.actualUrl.get()).isEqualTo("https://example.com?query=test-äöü");
+		assertThat(actualUri.get()).hasToString("https://example.com?query=test-äöü");
 	}
 
 	@Test
 	public void testInt2455UriNotEncoded() {
-		MockRestTemplate restTemplate = new MockRestTemplate();
-		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
-		uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-		restTemplate.setUriTemplateHandler(uriBuilderFactory);
+		AtomicReference<URI> actualUri = new AtomicReference<>();
 
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
-				new SpelExpressionParser().parseExpression("'https://my.RabbitMQ.com/api/' + payload"), restTemplate);
+				new SpelExpressionParser().parseExpression("'https://my.RabbitMQ.com/api/' + payload"));
+		handler.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		handler.setRequestFactory((uri, httpMethod) -> {
+			actualUri.set(uri);
+			throw new RuntimeException("intentional");
+		});
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		assertThatExceptionOfType(Exception.class)
 				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("queues/%2f/si.test.queue?foo#bar")));
 
-		assertThat(restTemplate.actualUrl.get())
-				.isEqualTo("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
+		assertThat(actualUri.get()).hasToString("https://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar");
 	}
 
 	@Test
@@ -882,6 +882,7 @@ public class HttpRequestExecutingMessageHandlerTests implements TestApplicationC
 	}
 
 	@Test
+	@SuppressWarnings("removal")
 	public void testNoContentTypeAndSmartConverter() {
 		Sinks.One<HttpHeaders> httpHeadersSink = Sinks.one();
 		RestTemplate testRestTemplate = new RestTemplate() {

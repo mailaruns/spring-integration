@@ -50,6 +50,7 @@ import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatObject;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -172,7 +173,7 @@ public class HttpOutboundGatewayParserTests {
 	public void restClientConfig() {
 		HttpRequestExecutingMessageHandler handler =
 				(HttpRequestExecutingMessageHandler) this.restClientConfig.getHandler();
-		assertThat(TestUtils.<RestClient>getPropertyValue(handler, "restClient")).isEqualTo(this.customRestClient);
+		assertThatObject(TestUtils.getPropertyValue(handler, "restClient")).isSameAs(this.customRestClient);
 	}
 
 	@Test

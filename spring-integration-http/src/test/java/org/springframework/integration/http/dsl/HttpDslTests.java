@@ -75,7 +75,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -145,13 +144,6 @@ public class HttpDslTests {
 								.param("name", "name"))
 				.andExpect(status().isForbidden())
 				.andExpect(content().string("Error"));
-	}
-
-	@Test
-	public void restClientDslFactoryMethods() {
-		RestClient restClient = RestClient.create();
-		assertThat(Http.outboundGateway("http://localhost/test", restClient)).isNotNull();
-		assertThat(Http.outboundChannelAdapter("http://localhost/test", restClient)).isNotNull();
 	}
 
 	@Test

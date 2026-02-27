@@ -49,25 +49,12 @@ public class HttpMessageHandlerSpec
 
 	private final boolean clientSet;
 
-	protected HttpMessageHandlerSpec(URI uri) {
-		this(new ValueExpression<>(uri));
-	}
-
-	protected HttpMessageHandlerSpec(String uri) {
-		this(new LiteralExpression(uri));
-	}
-
-	protected HttpMessageHandlerSpec(Expression uriExpression) {
-		super(new HttpRequestExecutingMessageHandler(uriExpression));
-		this.clientSet = false;
-	}
-
 	/**
 	 * @deprecated Since 7.1 in favor of {@link RestClient}-based configuration.
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(URI uri, @Nullable RestTemplate restTemplate) {
-		this(new ValueExpression<>(uri), restTemplate);
+		this(new ValueExpression<>(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
 	/**
@@ -75,7 +62,7 @@ public class HttpMessageHandlerSpec
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(String uri, @Nullable RestTemplate restTemplate) {
-		this(new LiteralExpression(uri), restTemplate);
+		this(new LiteralExpression(uri), restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
 	/**
@@ -83,23 +70,20 @@ public class HttpMessageHandlerSpec
 	 */
 	@Deprecated(since = "7.1", forRemoval = true)
 	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestTemplate restTemplate) {
-		super(restTemplate != null
-				? new HttpRequestExecutingMessageHandler(uriExpression, RestClient.create(restTemplate))
-				: new HttpRequestExecutingMessageHandler(uriExpression));
-		this.clientSet = restTemplate != null;
+		this(uriExpression, restTemplate != null ? RestClient.create(restTemplate) : null);
 	}
 
-	protected HttpMessageHandlerSpec(URI uri, RestClient restClient) {
+	protected HttpMessageHandlerSpec(URI uri, @Nullable RestClient restClient) {
 		this(new ValueExpression<>(uri), restClient);
 	}
 
-	protected HttpMessageHandlerSpec(String uri, RestClient restClient) {
+	protected HttpMessageHandlerSpec(String uri, @Nullable RestClient restClient) {
 		this(new LiteralExpression(uri), restClient);
 	}
 
-	protected HttpMessageHandlerSpec(Expression uriExpression, RestClient restClient) {
+	protected HttpMessageHandlerSpec(Expression uriExpression, @Nullable RestClient restClient) {
 		super(new HttpRequestExecutingMessageHandler(uriExpression, restClient));
-		this.clientSet = true;
+		this.clientSet = restClient != null;
 	}
 
 	/**
